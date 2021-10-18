@@ -1,0 +1,25 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t kyowi/react-test -f ./client/Dockerfile.dev ./client
+
+script: 
+  - docker run -e CI=true kyowi/react-test npm test
+
+after_success:
+  - docker build -t kyowi/multi-client ./client
+  - docker build -t kyowi/multi-nginx ./nginx 
+  - docker build -t kyowi/multi-server ./server
+  - docker build -t kyowi/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push kyowi/multi-client
+  - docker push kyowi/multi-nginx
+  - docker push kyowi/multi-server
+  - docker push kyowi/multi-worker
+   
+
+
