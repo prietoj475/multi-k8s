@@ -2,8 +2,22 @@ sudo: required
 services:
   - docker
 before_install:
-  - "add encryped travis ci service account json"
+  - openssl "add encryped travis ci service account json"
   - curl https://sdk.cloud.google.com | bash> /dev/null;
   - source $HOME/google-cloud-sdk/path.bash.inc
   - gcloud components update kubectl
   - gcloud auth activate-service-account --key-file service-account.json
+  - gcloud config set project "add project name"
+  - gcloud config set compute/zone us-east-a
+  - gcloud container clusters get-credentials multi-cluster
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker build -t prietoj475/react-test -f ./client/Dockerfile.dev ./client
+
+  script:
+  - docker run -e CI=true USERNAME/react-test npm test
+
+  deploy: 
+    provider: script
+    script: bash./deploy.sh
+    on:
+      branch: master
